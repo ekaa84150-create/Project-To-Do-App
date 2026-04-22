@@ -2,6 +2,7 @@ const taskInput = document.getElementById("task-input");
 const addBtn = document.getElementById("add-btn");
 const taskList = document.getElementById("task-list");
 
+// Ambil data, kalau kosong kasih array kosong
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 function save() {
@@ -11,15 +12,21 @@ function save() {
 function render() {
     taskList.innerHTML = "";
 
-    tasks.forEach((task, index) => {
+    const sisaTugas = tasks.reduce((acc, curr) => (curr.done ? acc : acc + 1), 0);
+    const countElement = document.getElementById("count-todo");
+    if (countElement) {
+        countElement.textContent = sisaTugas;
+    }
+
+    tasks.forEach((task) => {
         const li = document.createElement("li");
 
         const span = document.createElement("span");
         span.textContent = task.text;
-    
+        
+        // GUNAKAN CLASS, BUKAN .STYLE
         if (task.done) {
-            span.style.textDecoration ="line-through";
-            span.style.opacity = "0.5";
+            span.classList.add("completed");
         }
 
         const doneBtn = document.createElement("button");
@@ -30,21 +37,16 @@ function render() {
         delBtn.textContent = "❌";
         delBtn.classList.add("delete-btn");
 
+        // HAPUS PAKE FILTER (ID UNIK)
         delBtn.addEventListener("click", () => {
-            tasks.splice(index, 1);
+            tasks = tasks.filter(t => t.id !== task.id);
             save();
             render();
         });
 
+        // TOGGLE DONE PAKE CLASS
         doneBtn.addEventListener("click", () => {
-            tasks[index].done = !tasks[index].done;
-            if (task.done) {
-                span.style.textDecoration = "line-through";
-                span.style.opacity = "0.5";
-            } else {
-                span.style.textDecoration = "none";
-                span.style.opacity ="1";
-            }
+            task.done = !task.done;
             save();
             render();
         });
@@ -56,11 +58,17 @@ function render() {
     });
 }
 
+function cekStatistik() {
+    const sisaTugas = tasks.reduce((acc, curr) => curr.done ? acc : acc + 1.0);
+    console.log("Tugas Anda Sisa: " + sisaTugas);
+}
+
 addBtn.addEventListener("click", () => {
     const text = taskInput.value.trim();
     if (!text) return;
 
     tasks.push({
+        id: Date.now(), // PAKAI DATE BUKAN DATA
         text: text,
         done: false
     });
