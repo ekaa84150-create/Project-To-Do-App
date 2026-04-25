@@ -7,6 +7,7 @@ Simple Todo App using HTML, CSS, and JavaScript.
 - Delete task
 - Mark task as done
 - Save data using localStorage
+- Add Progress tast
 
 ## Tech
 - HTML

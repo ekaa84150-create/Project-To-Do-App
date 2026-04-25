@@ -9,53 +9,63 @@ function save() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+let filter = "all"
+
 function render() {
     taskList.innerHTML = "";
+
+    const filtered = tasks.filter(task => {
+        if (filter === "active") return !task.done;
+        if (filter === "completed") return task.done;
+        return true;
+    });
+
+    filtered.forEach((task) => {
+        const li = document.createElement("li");
+
+        if (task.isEditing) {
+            const editInput = document.createElement("input");
+            editInput.value = task.text;
+            editInput.classList.add("edit-input");
+
+            editInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    task.text = editInput.value.trim();
+                    task.isEditing = false;
+                    save(); render();
+                }
+            });
+            li.appendChild(editInput);
+        } else {
+            const span = document.createElement("span");
+            span.textContent = task.text;
+            if (task.done) span.classList.add("completed");
+            span.addEventListener("dblclick", () => {
+                task.isEditing = true;
+                render();
+            });
+            const doneBtn = document.createElement("button");
+            doneBtn.textContent = task.done ? "↩️" : "✔️";
+            doneBtn.onclick = () => { task.done = !task.done; save(); render(); };
+
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "❌";
+            delBtn.onclick = () => {
+                tasks = tasks.filter(t => t.id !== task.id);
+                save(); render();
+            }
+            li.appendChild(span);
+            li.appendChild(doneBtn);
+            li.appendChild(delBtn);
+        }
+        taskList.appendChild(li);
+    });
 
     const sisaTugas = tasks.reduce((acc, curr) => (curr.done ? acc : acc + 1), 0);
     const countElement = document.getElementById("count-todo");
     if (countElement) {
         countElement.textContent = sisaTugas;
     }
-
-    tasks.forEach((task) => {
-        const li = document.createElement("li");
-
-        const span = document.createElement("span");
-        span.textContent = task.text;
-        
-        // GUNAKAN CLASS, BUKAN .STYLE
-        if (task.done) {
-            span.classList.add("completed");
-        }
-
-        const doneBtn = document.createElement("button");
-        doneBtn.textContent = "✔️";
-        doneBtn.classList.add("done-btn");
-
-        const delBtn = document.createElement("button");
-        delBtn.textContent = "❌";
-        delBtn.classList.add("delete-btn");
-
-        // HAPUS PAKE FILTER (ID UNIK)
-        delBtn.addEventListener("click", () => {
-            tasks = tasks.filter(t => t.id !== task.id);
-            save();
-            render();
-        });
-
-        // TOGGLE DONE PAKE CLASS
-        doneBtn.addEventListener("click", () => {
-            task.done = !task.done;
-            save();
-            render();
-        });
-
-        li.appendChild(span);
-        li.appendChild(doneBtn);
-        li.appendChild(delBtn);
-        taskList.appendChild(li);
-    });
 }
 
 function cekStatistik() {
@@ -68,7 +78,7 @@ addBtn.addEventListener("click", () => {
     if (!text) return;
 
     tasks.push({
-        id: Date.now(), // PAKAI DATE BUKAN DATA
+        id: Date.now(),
         text: text,
         done: false
     });
